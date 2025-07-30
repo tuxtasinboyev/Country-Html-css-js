@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body style="background-color: whitesmoke;">
+    <div style="display: flex; justify-content: space-around; border: 1px solid black; width: 100%;background-color: white;border-radius: 5px;border: none;"
+        id="div1">
+
+        <h1 style="letter-spacing: 2px;">Where in the world?</h1>
+        <button style="font-size: 20px;letter-spacing: 2px;border: none;background-color:white;" id="btn">Dark
+            Mode</button>
+    </div>
+    <div style="width: 100%;border: 1px dotted black;background-color:whitesmoke;display: flex;align-items: center;justify-content: space-around;border: none;"
+        id="2Div">
+        <input type="text" name="search" id="search" placeholder="Search a country"
+            style="width: 420px; height: 40px;margin-top: 40px;text-align: center;background-color: white;border: none;border-radius: 5px;">
+        <button
+            style="width: 200px;height: 40px;margin-top: 40px;background-color: white;border: none;border-radius: 5px;"
+            id="modeBtn">Fitered
+            by
+            Region</button>
+    </div>
+    <div style="width: 70%; margin: 40px auto; display: flex; flex-wrap: wrap; gap: 40px; justify-content: center;"
+        id="otaDiv">
+
+        <div style="width:280px; height: 350px; border: 1px solid #ccc; border-radius: 10px; overflow: hidden; background-color: white;"
+            id="country">
+            <img src="https://flagcdn.com/w320/de.png" alt="Germany"
+                style="width: 100%; height: 60%; object-fit: cover; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+            <h3 style="margin: 10px 0 5px 20px;">Germany</h3>
+            <ul style="list-style: none; padding-left: 20px; margin: 0;line-height: 1.5;">
+                <li><strong>Population:</strong> 83 million</li>
+                <li><strong>Region:</strong> Europe</li>
+                <li><strong>Capital:</strong> Berlin</li>
+            </ul>
+        </div>
+    </div>
+
+</body>
+<script>
+    document.querySelectorAll('div[style*="width:280px"][style*="height: 350px"]').forEach(div => {
+        div.classList.add('card');
+    });
+
+    const btn = document.getElementById('btn');
+    const div1 = document.getElementById('div1');
+    const div2 = document.getElementById('2Div');
+    const inputs = document.querySelectorAll('input');
+    const buttons = document.querySelectorAll('button');
+    const otaDiv = document.getElementById('otaDiv');
+    const modeBtn = document.getElementById('modeBtn')
+    const input = document.getElementById('search')
+    let isDark = false;
+
+    function applyCardStyle(card) {
+        if (isDark) {
+            card.style.backgroundColor = '#2b3945';
+            card.style.color = '#ffffffcc';
+            card.style.border = 'none';
+            card.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+        } else {
+            card.style.backgroundColor = 'white';
+            card.style.color = 'black';
+            card.style.border = '1px solid #ccc';
+            card.style.boxShadow = 'none';
+        }
+    }
+
+    let allCountries = [];
+
+    const res = () => {
+        fetch('https://restcountries.com/v3.1/all?fields=name,population,region,capital,flags')
+            .then(res => res.json())
+            .then(data => {
+                allCountries = data;
+                showCountries(allCountries);
+            });
+    };
+
+    function showCountries(countries) {
+        otaDiv.innerHTML = '';
+        countries.forEach((s) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.width = '280px';
+            card.style.height = '350px';
+            card.style.borderRadius = '10px';
+            card.style.overflow = 'hidden';
+            applyCardStyle(card);
+
+            card.innerHTML = `
+            <img src="${s.flags?.png}" alt="${s.flags?.alt}"
+                style="width: 100%; height: 60%; object-fit: cover; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+            <h3 style="margin: 10px 0 5px 20px;">${s.name.common}</h3>
+            <ul style="list-style: none; padding-left: 20px; margin: 0; line-height: 1.5;">
+                <li><strong>Population:</strong> ${s.population.toLocaleString()}</li>
+                <li><strong>Region:</strong> ${s.region}</li>
+                <li><strong>Capital:</strong> ${s.capital?.[0] || 'N/A'}</li>
+            </ul>`;
+
+            otaDiv.appendChild(card);
+            card.addEventListener('click', () => {
+                showCountryDetails(s);
+            })
+        });
+    }
+    function showCountryDetails(country) {
+        otaDiv.style.display = 'none';
+
+        const existingDetail = document.getElementById('countryDetailDiv');
+        if (existingDetail) existingDetail.re// eski detail bo‘lsa, o‘chirmove(); 
+
+        const div = document.createElement('div');
+        div.id = 'countryDetailDiv';
+
+        const languages = country.languages ? Object.values(country.languages).join(', ') : 'N/A';
+        const currencies = country.currencies
+            ? Object.values(country.currencies).map(c => c.name).join(', ')
+            : 'N/A';
+        const borders = country.borders || [];
+
+        div.innerHTML = `
+        <div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start; margin: 40px;">
+            <div>
+                <img src="${country.flags.png}" alt="${country.name.common} Flag"
+                    style="width: 400px; height:400px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.2);overflow:hidden; ">
+            </div>
+            <div style="max-width: 500px;">
+                <h1 style="font-size: 32px; margin-bottom: 20px; color: ${isDark ? '#ff8888' : 'red'};">${country.name.common}</h1>
+                <p><strong>Native Name:</strong> ${Object.values(country.name.nativeName || {})[0]?.common || country.name.common}</p>
+                <p><strong>Population:</strong> ${country.population.toLocaleString()}</p>
+                <p><strong>Region:</strong> ${country.region}</p>
+                <p><strong>Sub Region:</strong> ${country.subregion || 'N/A'}</p>
+                <p><strong>Capital:</strong> ${country.capital?.[0] || 'N/A'}</p>
+                <p><strong>Top Level Domain:</strong> ${country.tld?.[0] || 'N/A'}</p>
+                <p><strong>Currencies:</strong> ${currencies}</p>
+                <p><strong>Languages:</strong> ${languages}</p>
+
+                <div style="margin-top: 20px;">
+                    <strong>Border Countries:</strong><br>
+                    ${borders.length > 0 ? borders.map(b => `
+                        <button style="background-color: ${isDark ? '#2b3945' : '#fff'}; color: ${isDark ? '#fff' : '#000'}; border: 1px solid #ccc; padding: 6px 14px; margin: 4px; border-radius: 4px; cursor: pointer;">
+                            ${b}
+                        </button>`).join('') : 'No borders'}
+                </div>
+                <br>
+                <button id="backBtn" style="margin-top: 20px; padding: 10px 20px; border: none; border-radius: 5px; background: ${isDark ? '#444' : '#ddd'}; cursor: pointer;">← Back</button>
+            </div>
+        </div>
+    `;
+
+        document.body.appendChild(div);
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            div.remove();
+            otaDiv.style.display = 'flex';
+        });
+    }
+
+
+    input.addEventListener('input', (e) => {
+        const value = e.target.value.toLowerCase();
+
+        const filtered = allCountries.filter(c =>
+            c.name.common.toLowerCase().includes(value)
+        );
+
+        showCountries(filtered);
+    });
+    res()
+
+    btn.addEventListener('click', () => {
+        isDark = !isDark;
+
+        document.body.style.backgroundColor = isDark ? '#202c37' : 'whitesmoke';
+        document.body.style.color = isDark ? '#ffffffcc' : 'black';
+        div1.style.backgroundColor = isDark ? '#2b3945' : 'white';
+        div2.style.backgroundColor = isDark ? '#202c37' : 'whitesmoke';
+
+        buttons.forEach(button => {
+            if (button.id !== 'btn') {
+                button.style.backgroundColor = isDark ? '#2b3945' : 'white';
+                button.style.color = isDark ? '#ffffffcc' : 'black';
+                button.style.border = isDark ? '1px dashed #ffffff40' : 'none';
+                button.style.width = '200px';
+                button.style.height = '40px';
+                button.style.borderRadius = '5px';
+                button.style.marginTop = '40px';
+                button.style.fontSize = '16px';
+                button.style.letterSpacing = '1px';
+                button.style.textAlign = 'center';
+            }
+        });
+
+        btn.style.backgroundColor = isDark ? '#2b3945' : 'white';
+        btn.style.color = isDark ? '#ffffffcc' : 'black';
+        btn.style.border = isDark ? '1px dashed #ffffff40' : 'none';
+        btn.style.fontSize = '20px';
+        btn.style.letterSpacing = '2px';
+        btn.style.borderRadius = '5px';
+        btn.style.marginTop = '15px';
+        btn.style.width = '170px';
+        btn.style.height = '50px';
+
+        inputs.forEach(input => {
+            input.style.backgroundColor = isDark ? '#2b3945' : 'white';
+            input.style.color = isDark ? '#ffffffcc' : 'black';
+            input.style.border = 'none';
+            input.style.boxShadow = isDark ? '0 0 0 1px #ffffff40' : 'none';
+        });
+
+        document.querySelectorAll('.card').forEach(card => {
+            card.style.backgroundColor = isDark ? '#2b3945' : 'white';
+            card.style.color = isDark ? '#ffffffcc' : 'black';
+            card.style.border = isDark ? 'none' : '1px solid #ccc';
+            card.style.boxShadow = isDark ? '0 2px 6px rgba(0,0,0,0.3)' : 'none';
+        });
+
+        btn.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+    });
+
+
+</script>
+
+
+
+</html>
